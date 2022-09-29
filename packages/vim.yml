@@ -1,0 +1,39 @@
+---
+- name: Ensure ~/.viminfo
+  become: true
+  ignore_errors: true
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/.viminfo"
+    owner: "{{ ansible_user_id | default(omit) }}"
+    group: "{{ ansible_user_id | default(omit) }}"
+    state: file
+
+- name: Ensure ~/.vimrc
+  become: true
+  ansible.builtin.template:
+    src: vimrc.j2
+    dest: "{{ ansible_user_dir }}/.vimrc"
+    owner: "{{ ansible_user_id | default(omit) }}"
+    group: "{{ ansible_user_id | default(omit) }}"
+  register: vimrc
+
+- name: Handle Vim Plug(s)
+  block:
+    - name: Ensure ~/.vim directory
+      become: true
+      ansible.builtin.file:
+        path: "{{ ansible_user_dir }}/.vim/autoload"
+        owner: "{{ ansible_user_id | default(omit) }}"
+        group: "{{ ansible_user_id | default(omit) }}"
+        recurse: true
+        state: directory
+
+    - name: Ensure Vim Plug script
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+        dest: "{{ ansible_user_dir }}/.vim/autoload/plug.vim"
+
+    - name: Ensure Vim Plug(s)
+      ansible.builtin.command: "vim -es -X -u {{ ansible_user_dir }}/.vimrc -i NONE +PlugInstall! +PlugClean! +qa"
+      changed_when: false
+  when: vim_plugs is defined

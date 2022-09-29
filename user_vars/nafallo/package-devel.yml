@@ -1,0 +1,14 @@
+---
+apt:
+  - name:
+      - build-essential
+      - dput
+      - git-buildpackage
+
+debfullname: Nafallo Bjälevik
+debemail: nafallo@ubuntu.com
+
+gbp_config:
+  - section: buildpackage
+    option: export-dir
+    value: '../build-area/'

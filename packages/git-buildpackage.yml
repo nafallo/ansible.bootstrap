@@ -1,0 +1,12 @@
+---
+- name: Ensure GBP configuration
+  community.general.ini_file:
+    path: "{{ ansible_user_dir }}/.gbp.conf"
+    section: "{{ item.section | mandatory }}"
+    option: "{{ item.option | default(omit) }}"
+    values: "{{ [item.value] if item.value is defined else item.values | default(omit) }}"
+    exclusive: "{{ item.exclusive | default(omit) }}"
+    backup: "{{ item.backup | default(omit) }}"
+    create: true
+    state: "{{ item.state | default(omit) }}"
+  loop: "{{ gbp_config | default([]) }}"

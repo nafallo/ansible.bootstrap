@@ -1,0 +1,20 @@
+---
+- name: Handle certificates
+  become: true
+  block:
+    - name: Ensure certificates exists
+      ansible.builtin.copy:
+        dest: "{{ item.dest }}"
+        content: "{{ item.public }}"
+        owner: root
+        group: root
+        mode: 0644
+        validate: /usr/bin/openssl x509 -in %s -noout
+      loop: "{{ certificates | default([]) }}"
+      loop_control:
+        label: "{{ item.dest | basename }}"
+
+    - name: Update system certificates
+      ansible.builtin.command: /usr/sbin/update-ca-certificates
+      register: _certificates_update
+      changed_when: "'0 added, 0 removed' not in _certificates_update.stdout"

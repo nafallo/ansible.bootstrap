@@ -1,0 +1,27 @@
+---
+- name: Ensure ~/.ssh directory
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/.ssh/"
+    mode: 0700
+    state: directory
+
+- name: Ensure ~/.ssh/config
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_user_dir }}/.ssh/config"
+    block: "{{ lookup('ansible.builtin.template', 'ssh_config.j2') }}"
+    mode: 0600
+    create: true
+  when:
+    - ssh_config is defined
+    - ssh_config is mapping
+
+- name: Ensure SSH known hosts
+  ansible.builtin.known_hosts:
+    name: "{{ item.name | mandatory }}"
+    key: "{{ item.key | default(omit) }}"
+    path: "{{ item.path | default(omit) }}"
+    hash_host: "{{ item.hash_host | default(omit) }}"
+    state: "{{ item.state | default(omit) }}"
+  loop: "{{ ssh_known_hosts | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"

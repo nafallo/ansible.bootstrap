@@ -1,0 +1,12 @@
+---
+- name: Ensure packaging identity
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    marker: '# {mark} devscripts'
+    block: |
+      {% if debfullname is defined %}
+      export DEBFULLNAME="{{ debfullname }}"
+      {% endif %}
+      {% if debemail is defined %}
+      export DEBEMAIL="{{ debemail }}"
+      {% endif %}

@@ -1,0 +1,32 @@
+---
+ssh_config:
+  - Host: '*'
+    GSSAPIAuthentication: 'no'
+    ForwardAgent: 'no'
+    ForwardX11: 'no'
+    PreferredAuthentications: 'publickey,keyboard-interactive,password'
+    VerifyHostKeyDNS: 'yes'
+    IdentitiesOnly: 'no'
+    HashKnownHosts: 'no'
+
+ssh_known_hosts:
+  - name: gateway.infra
+    key: gateway.infra,192.168.80.1 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBBaKUT9Dw2qFphJ+iFWKbwUOtRwXknMlEFYbCjwaY/d12wKltfZPz6WA9A2UyEyIr/XBiU8YrGMQccmaqlIanYU=
+
+  - name: knight.magicalforest.net
+    key: knight.magicalforest.net,91.194.66.62,2a02:7340:42::62 ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAucBJFAsMN7NRFqB+HCYIHWJpLUGkg9sM7m5c1v/BnV7V3akVErdOy16j/xw8PmVZS/AC0MtjcCX42qZpspdL5ZzB7vW7OGxAvMtaH06Q8CFO74di94R+Rk94GRPgTf1SQ1zGlP4tORG1/tL0CLAxmk0l9aR/sbZ5d6mC+Tj1sBkdWkaQV0TPEPKqTeWJnTi8AdflsLAF7lGhtUiv/GDfTepeYwtFj6x3E58OHE7oR6IUZaxlfdDTKYAab2dzyt/1u5roS5c+hp1TCMre6OTV9S/4ALOZwy+tYCs9goWCQ1QHewwmuGqkglgqw0GtV5x7Z46TVuHlKF7VKbMIqEZJSQ==
+
+  - name: bee.magicalforest.net
+    state: absent
+
+  - name: fox.magicalforest.net
+    key: fox.magicalforest.net,192.168.80.42,2001:9b1:4129:d6dd:211:32ff:fef3:57a5 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBCNYH0/vtISDcagevWPRwM8TmB2pLlBLrNCwn4Y5fxdk8RIudVM58d7kKZUvWp8DyWygd58y4BVaKdBScTkXZFQ=
+
+  - name: leuce.magicalforest.net
+    state: absent
+
+  - name: maas.magicalforest.net
+    key: maas.magicalforest.net,192.168.80.130,2001:9b1:4129:d6cc:11:32ff:fe2d:7c99 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBBztCbTgUyAws3b88yYFvLPNZvABfD0DP/nufA5HOQV9TrUGkjbza1Asi15Zh1bnL7qbHV/cLmgTI+6sd8qyE+Q=
+
+  - name: github.com
+    key: github.com,140.82.121.4 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=

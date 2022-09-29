@@ -1,0 +1,51 @@
+---
+- name: Ensure bat configuration directory
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/.config/bat"
+    recurse: true
+    state: directory
+  when: bat_config is defined
+
+- name: Ensure bat configuration file
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_user_dir }}/.config/bat/config"
+    line: "--{{ item.key }}=\"{{ [item.value] | flatten | join(',') }}\""
+    regexp: "^--{{ item.key }}"
+    create: true
+  loop: "{{ bat_config | default({}) | dict2items | unique }}"
+  loop_control:
+    label: "{{ item.key }}=\"{{ [item.value] | flatten | join(',') }}\""
+
+- name: Ensure bat bash aliases
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_user_dir }}/.bash_aliases"
+    line: "alias {{ item.key }}='{{ item.value }}'"
+    regexp: "^alias {{ item.key }}="
+    create: true
+    state: "{{ item.state | default(omit) }}"
+  loop: "{{ bat_aliases | default({}) | dict2items | unique }}"
+  loop_control:
+    label: "alias {{ item.key }}='{{ item.value }}'"
+
+- name: Handle bat themes
+  block:
+    - name: Ensure bat themes directory
+      ansible.builtin.file:
+        path: "{{ ansible_user_dir }}/.config/bat/themes"
+        recurse: true
+        state: directory
+
+    - name: Ensure bat themes copied
+      ansible.builtin.copy:
+        dest: "{{ ansible_user_dir }}/.config/bat/themes/{{ item.name }}.tmTheme"
+        src: "{{ item.src | default(omit) }}"
+        content: "{{ item.content | default(omit) }}"
+      loop: "{{ bat_themes | default([]) }}"
+      loop_control:
+        label: "{{ item.name }}"
+      register: _bat_themes
+
+    - name: Rebuild bat binary cache
+      ansible.builtin.command: batcat cache --build
+      when: _bat_themes.changed
+  when: bat_themes is defined

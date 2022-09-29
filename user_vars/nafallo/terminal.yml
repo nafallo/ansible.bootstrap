@@ -1,0 +1,35 @@
+---
+apt:
+  - name:
+      - bat
+      - byobu
+    install_recommends: false
+
+bash_aliases:
+  diff: 'diff --color=auto'
+
+bat_aliases:
+  bat: batcat
+  cat: 'batcat --style=plain,header'
+
+bat_config:
+  theme: Solarized (dark)
+  style:
+    - numbers
+    - changes
+    - header
+
+bat_themes:
+  - name: 'Solarized (dark)'
+    src: 'bat/Solarized (dark).tmTheme'
+  - name: 'Solarized (light)'
+    src: 'bat/Solarized (light).tmTheme'
+
+terminal_borderless: true
+terminal_broadcast_keys: false
+terminal_scrollbar: false
+terminal_theme: 'solarized-dark'
+terminal_titlebar: false
+terminal_transparency: 15
+
+tmux_rename_window: true

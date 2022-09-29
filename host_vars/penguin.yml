@@ -1,0 +1,47 @@
+---
+ansible_cfg:
+  - option: inventory
+    value: !unsafe '{{CWD}}/inventory'
+  - option: collections_path
+    value: ~/.ansible/collections:~/ansible/collections:/usr/share/ansible/collections
+  - option: roles_path
+    value: ~/.ansible/roles:~/ansible/roles
+  - option: localhost_warning
+    value: 'false'
+  - option: vault_password_file
+    value: ~/devel/vault_password/vault_password.sh
+
+apt:
+  - name: hub
+    install_recommends: false
+
+git_files:
+  - name: github_token
+    path: "{{ ansible_user_dir }}/.bashrc"
+    line: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          64646666653035613666373561386261363062306239303333373933313739623333353835306334
+          6133373862363839346366643931366230633933616235360a313535353833366566393466353734
+          36656532323766376539303336636461303537313133653763333364376465663731666561323864
+          3961643236366533620a663738306635306563646566323735623663636239316261663730383365
+          39643162643838316565623465663361663536333362303832353634383331353966396632666564
+          61346330306561333261613339636432326262333735396339333638323662333835303538613532
+          633036636336643166363631663966613036
+    regexp: '^GITHUB_TOKEN='
+
+gpg_refresh_tty: true
+gpg_ssh_agent: true
+
+hub_git_alias: true
+
+lpass_env:
+  clipboard_command: wl-copy
+
+lpass_scripts:
+  - change-ssh-password.sh
+
+ssh_config:
+  - Host: 'badger.magicalforest.net boar.magicalforest.net wolf.magicalforest.net wolverine.magicalforest.net'
+    User: ubuntu
+    StrictHostKeyChecking: 'no'
+    UserKnownHostsFile: '/dev/null'

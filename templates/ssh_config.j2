@@ -1,0 +1,9 @@
+{% for item in ssh_config %}
+Host {{ item.pop('Host') }}
+{%   for line in item | dict2items %}
+  {{ line.key }} {{ line.value }}
+{%   endfor %}
+{%   if not loop.last %}
+
+{%   endif %}
+{% endfor %}

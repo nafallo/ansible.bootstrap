@@ -1,0 +1,28 @@
+---
+- name: Ensure Terminator configuration directory
+  ansible.builtin.file:
+    path: "{{ ansible_user_dir }}/.config/terminator"
+    state: directory
+    recurse: true
+
+- name: Ensure Terminator configuration file
+  vars:
+    background_color: |-
+      {% if theme.startswith('solarized') %}
+      {{ '#fdf6e3' if theme.endswith('light') else '#002b36' }}
+      {%- endif %}
+    foreground_color: |-
+      {% if theme.startswith('solarized') %}
+      {{ '#657b83' if theme.endswith('light') else '#839496' }}
+      {%- endif %}
+    palette: |-
+      {% if theme.startswith('solarized') %}
+      #073642:#dc322f:#859900:#b58900:#268bd2:#d33682:#2aa198:#eee8d5:#002b36:#cb4b16:#586e75:#657b83:#839496:#6c71c4:#93a1a1:#fdf6e3
+      {%- elif theme.startswith('tango') %}
+      #000000:#cc0000:#4e9a06:#c4a000:#3465a4:#75507b:#06989a:#d3d7cf:#555753:#ef2929:#8ae234:#fce94f:#729fcf:#ad7fa8:#34e2e2:#eeeeec
+      {%- endif %}
+    theme: "{{ terminal_theme | default(none) }}"
+  ansible.builtin.template:
+    src: terminator.j2
+    dest: "{{ ansible_user_dir }}/.config/terminator/config"
+    backup: true

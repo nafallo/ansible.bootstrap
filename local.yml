@@ -1,0 +1,119 @@
+---
+- name: Bootstrap playbook
+  hosts: localhost
+  become: false
+  gather_facts: false
+  force_handlers: true
+
+  environment:
+    http_proxy: "{{ http_proxy if http_proxy is defined else None }}"
+    https_proxy: "{{ https_proxy if https_proxy is defined else None }}"
+    no_proxy: "{{ None if no_proxy is not defined else
+      (no_proxy.split(',') if no_proxy is string else no_proxy) |
+      map('regex_replace', '^(?:[0-9]{1,3}\\.){1,3}.*') | select() |
+      map('regex_replace', '^\\*') | join(',') }}"
+
+  pre_tasks:
+    - name: Authenticate for become tasks
+      become: false
+      check_mode: false
+      ansible.builtin.command: '/usr/bin/sudo -v'
+      args:
+        warn: false
+      changed_when: false
+
+    - name: Gather facts
+      become: false
+      ansible.builtin.setup:
+        gather_subset: min
+
+  tasks:
+    - name: Ensure Ansible configuration
+      community.general.ini_file:
+        path: "{{ ansible_user_dir }}/.ansible.cfg"
+        section: "{{ item.section | default('defaults') }}"
+        option: "{{ item.option | default(omit) }}"
+        values: "{{ [item.value] if item.value is defined else item.values | default(omit) }}"
+        exclusive: "{{ item.exclusive | default(omit) }}"
+        backup: "{{ item.backup | default(omit) }}"
+        owner: "{{ item.owner | default(ansible_user_id) }}"
+        group: "{{ item.group | default(ansible_user_id) }}"
+        mode: "{{ item.mode | default('0644') }}"
+        create: true
+        state: "{{ item.state | default(omit) }}"
+      loop: "{{ ansible_cfg | default([]) }}"
+
+    - name: Ensure repository signing keys
+      become: true
+      ansible.builtin.apt_key:
+        id: "{{ item.keyid }}"
+        url: "{{ item.keyurl | default(omit) }}"
+        data: "{{ item.keydata | default(omit) }}"
+        keyring: "/etc/apt/trusted.gpg.d/{{ item.file | default((item.repo.split('/') | last).split(' ') | first) }}.gpg"
+        keyserver: "{{ item.keyserver | default('keyserver.ubuntu.com') if item.keydata is not defined and item.keyurl is not defined else omit }}"
+        state: "{{ item.state | default(omit) }}"
+      loop: "{{ repos | default([]) | selectattr('keyid', 'defined') | list }}"
+      loop_control:
+        label: "{{ item.repo }}"
+
+    - name: Ensure repository source lines
+      become: true
+      ansible.builtin.apt_repository:
+        repo: "{{ item.repo }}"
+        codename: "{{ item.codename | default(omit) }}"
+        filename: "{{ item.file | default((item.repo.split('/') | last).split(' ') | first) }}"
+        update_cache: "{{ item.update_cache | default(omit) }}"
+        state: "{{ item.state | default(omit) }}"
+      loop: "{{ repos | default([]) | selectattr('repo') | list }}"
+      loop_control:
+        label: "{{ item.repo }}"
+
+    - name: Pre-configure packages
+      become: true
+      ansible.builtin.debconf:
+        name: "{{ item.name | mandatory }}"
+        question: "{{ item.question | default(omit) }}"
+        unseen: "{{ item.unseen | default(omit) }}"
+        value: "{{ item.value | default(omit) }}"
+        vtype: "{{ item.vtype | default(omit) }}"
+      loop: "{{ debconf | default([]) }}"
+      loop_control:
+        label: "{{ item.name }}/{{ item.question }}"
+
+    - name: Ensure packages
+      become: true
+      ansible.builtin.apt:
+        name: "{{ item.name | default(omit) }}"
+        autoclean: "{{ item.autoclean | default(omit) }}"
+        autoremove: "{{ item.autoremove | default(omit) }}"
+        cache_valid_time: "{{ item.cache_valid_time | default(omit) }}"
+        deb: "{{ item.deb | default(omit) }}"
+        default_release: "{{ item.default_release | default(omit) }}"
+        force_apt_get: "{{ item.force_apt_get | default(omit) }}"
+        install_recommends: "{{ item.install_recommends | default(omit) }}"
+        only_upgrade: "{{ item.only_upgrade | default(omit) }}"
+        purge: "{{ item.purge | default(omit) }}"
+        update_cache: "{{ item.update_cache | default(omit) }}"
+        upgrade: "{{ item.upgrade | default(omit) }}"
+        state: "{{ item.state | default(omit) }}"
+      loop: "{{ apt | default([]) }}"
+
+    - name: Enumerate installed packages
+      become: false
+      ansible.builtin.package_facts:
+
+    - name: Ensure package configuration
+      ansible.builtin.include_tasks: "packages/{{ package }}.yml"
+      loop: "{{ ansible_facts.packages | flatten | union(firefox) | intersect(package_tasks) | sort }}"
+      loop_control:
+        loop_var: package
+      vars:
+        firefox: "{{ ['firefox'] if '/snap/bin/firefox' is file else [] }}"
+        package_tasks: "{{ query('fileglob', 'packages/*.yml') | map('basename') | list | regex_replace('.yml') }}"
+
+  handlers:
+    - name: Restart gpg-agent
+      ansible.builtin.systemd:
+        name: gpg-agent.service
+        scope: user
+        state: restarted

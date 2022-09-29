@@ -1,0 +1,239 @@
+{# BOOKMARKS #}
+{% if browser_bookmarks | default([]) | length != 0 %}
+  Bookmarks:
+{%  for bookmark in browser_bookmarks %}
+    - Title: {{ bookmark.name | mandatory | string }}
+      URL: {{ bookmark.url | mandatory | string }}
+{%    if bookmark.favicon is defined %}
+      Favicon: {{ bookmark.favicon | string }}
+{%    endif %}
+{%    if bookmark.place is defined %}
+      Placement: {{ bookmark.place | string }}
+{%    endif %}
+{%    if bookmark.folder is defined %}
+      Folder: {{ bookmark.folder | string }}
+{%    endif %}
+{%  endfor %}
+{% endif -%}
+
+{% if browser_bookmarks_default is defined %}
+  NoDefaultBookmarks: {{ not browser_bookmarks_default | bool }}
+{% endif -%}
+
+{# CERTIFICATES #}
+{% if browser_certificates | default([]) | length != 0 %}
+  Certificates:
+    Install: {{ browser_certificates | selectattr('dest', 'defined') | map(attribute='dest') | list }}
+    ImportEnterpriseRoots: true
+{% endif -%}
+
+{# EXTENSIONS #}
+{% if browser_extensions_installed is defined or
+   browser_extensions_removed is defined or
+   browser_extensions_locked is defined %}
+  Extensions:
+{%   if browser_extensions_installed is defined %}
+    Install: {{ [browser_extensions_installed] if browser_extensions_installed is string else browser_extensions_installed | list }}
+{%   endif %}
+{%   if browser_extensions_removed is defined %}
+    Uninstall: {{ [browser_extensions_removed] if browser_extensions_removed is string else browser_extensions_removed | list }}
+{%   endif %}
+{%   if browser_extensions_locked is defined %}
+    Locked: {{ [browser_extensions_locked] if browser_extensions_locked is string else browser_extensions_locked | list }}
+{%   endif %}
+{% endif %}
+{% if browser_extensions_update is defined %}
+  ExtensionUpdate: {{ browser_extensions_update | bool }}
+{% endif -%}
+
+{# FLASH #}
+{% if browser_flash is defined %}
+  FlashPlugin:
+    Default: {{ browser_flash | bool }}
+{%   if browser_flash_allow is defined %}
+    Allow: {{ [browser_flash_allow] if browser_flash_allow is string else browser_flash_allow | list }}
+{%   endif %}
+{%   if browser_flash_block is defined %}
+    Block: {{ [browser_flash_block] if browser_flash_block is string else browser_flash_block | list }}
+{%   endif %}
+{%   if browser_flash_locked is defined %}
+    Locked: {{ browser_flash_locked | bool }}
+{%   endif %}
+{% endif -%}
+
+{# HOMEPAGE AND STARTUP #}
+{% if browser_homepage is defined or browser_homepage_startup is defined %}
+  Homepage:
+{%   if browser_homepage is defined %}
+{%     if browser_homepage is string %}
+    URL: {{ browser_homepage }}
+{%     else %}
+    URL: {{ browser_homepage | first }}
+    Additional: {{ browser_homepage | difference(browser_homepage | first) }}
+{%     endif %}
+{%   endif %}
+{%   if browser_homepage_startup is undefined and browser_homepage_lockurl is defined and browser_homepage_lockurl %}
+{%     set browser_homepage_startup = 'homepage-locked' %}
+{%   endif %}
+{%   if browser_homepage_startup | default(None) in ['none', 'homepage', 'previous-session', 'homepage-locked'] %}
+    StartPage: {{ browser_homepage_startup | string }}
+{%   endif %}
+{%   if browser_homepage_locked is defined %}
+    Locked: {{ browser_homepage_locked | bool }}
+{%   endif %}
+{% endif -%}
+
+{% if browser_homepage_firstrun is defined and browser_homepage_firstrun is string %}
+  OverrideFirstRunPage: {{ '""' if browser_homepage_firstrun == 'none' else browser_homepage_firstrun }}
+{% endif %}
+{% if browser_homepage_postupgrade is defined and browser_homepage_postupgrade is string %}
+  OverridePostUpdatePage: {{ '""' if browser_homepage_postupgrade == 'none' else browser_homepage_postupgrade }}
+{% endif -%}
+
+{# NETWORK #}
+{% if browser_proxy is defined %}
+  Proxy:
+{%   if browser_proxy is string %}
+{%     if browser_proxy.endswith('proxy.pac') or browser_proxy.endswith('.js') %}
+{%       set browser_proxy = {'mode': 'autoconfig', 'pacfile': browser_proxy} %}
+{%     else %}
+{%       set browser_proxy = {'mode': 'manual', 'http': browser_proxy, 'use_http': True} %}
+{%     endif %}
+{%   endif %}
+{%   if browser_proxy.mode | default('none') in ['none', 'system', 'manual', 'autodetect', 'autoconfig'] %}
+{%     if browser_proxy.mode == 'autodetect' %}
+    Mode: autoDetect
+{%     elif browser_proxy.mode == 'autoconfig' %}
+{%       if browser_proxy.pacfile is defined %}
+    Mode: autoConfig
+{%       else %}
+    Mode: none
+{%       endif %}
+{%     else %}
+    Mode: {{ browser_proxy.mode }}
+{%     endif %}
+{%     if browser_proxy.http is defined %}
+    HTTPProxy: {{ browser_proxy.http | regex_replace('http?://') | string }}
+{%       if browser_proxy.use_http | default(False) | bool %}
+    UseHTTPProxyForAllProtocols: true
+{%       endif %}
+{%     endif %}
+{%     if browser_proxy.ssl is defined %}
+    SSLProxy: {{ browser_proxy.ssl | regex_replace('http?://') | string }}
+{%     endif %}
+{%     if browser_proxy.ftp is defined %}
+    FTPProxy: {{ browser_proxy.ftp | regex_replace('http?://') | string }}
+{%     endif %}
+{%     if browser_proxy.socks is defined %}
+    SOCKSProxy: {{ browser_proxy.socks | regex_replace('http?://') | string }}
+    SOCKSVersion: {{ 4 if browser_proxy.socks_version | default(None) == 4 else 5 }}
+{%     endif %}
+{%     if browser_proxy.pacfile is defined %}
+    AutoConfigURL: {{ browser_proxy.pacfile | string }}
+{%     endif %}
+{%   endif %}
+{%   if browser_proxy_bypass is defined %}
+    Passthrough: {{ browser_proxy_bypass if browser_proxy_bypass is string else browser_proxy_bypass | join(', ') }}
+{%   endif %}
+{%   if browser_proxy_autologin is defined %}
+    AutoLogin: {{ browser_proxy_autologin | bool }}
+{%   endif %}
+{%   if browser_proxy.socks_version | default(5) == 5 and browser_proxy_proxydns is defined %}
+    UseProxyForDNS: {{ browser_proxy_proxydns | bool }}
+{%   endif %}
+{%   if browser_proxy_locked is defined %}
+    Locked: {{ browser_proxy_locked | bool }}
+{%   endif %}
+{% endif -%}
+
+{% if browser_dnsprefetch is defined %}
+  NetworkPrediction: {{ browser_dnsprefetch | bool }}
+{% endif -%}
+
+{% if browser_doh is defined or browser_doh_url is defined or browser_doh_locked is defined or browser_doh_exclude is defined %}
+  DNSOverHTTPS:
+{%   if browser_doh is defined %}
+    Enabled: {{ browser_doh | bool }}
+{%   endif %}
+{%   if browser_doh_url is defined %}
+    ProviderURL: {{ browser_doh_url | string }}
+{%   endif %}
+{%   if browser_doh_exclude is defined %}
+    ExcludedDomains: {{ browser_doh_exclude | list }}
+{%   endif %}
+{%   if browser_doh_locked is defined %}
+    Locked: {{ browser_doh_locked | bool }}
+{%   endif %}
+{% endif -%}
+
+{# PASSWORDS #}
+{% if browser_passwords is defined %}
+{%   if browser_passwords_locked | default(False) %}
+  OfferToSaveLogins: {{ browser_passwords | bool }}
+{%   else %}
+  OfferToSaveLoginsDefault: {{ browser_passwords | bool }}
+{%   endif %}
+{% endif %}
+{% if browser_passwords_hidden is defined %}
+  DisablePasswordReveal: {{ browser_passwords_hidden | bool }}
+{% endif %}
+{% if browser_passwords_primary is defined %}
+{%   if browser_passwords_primary == 'required' %}
+  PrimaryPassword: true
+{%   elif browser_passwords_primary == 'disabled' %}
+  PrimaryPassword: false
+{%   endif %}
+{% endif -%}
+
+{# SECURITY #}
+{% if browser_security_tlsmin is defined and browser_security_tlsmin | float %}
+  SSLVersionMin: {{ 'tls' + browser_security_tlsmin | string }}
+{% endif %}
+{% if browser_security_tlsmax is defined and browser_security_tlsmax | float %}
+  SSLVersionMax: {{ 'tls' + browser_security_tlsmax | string }}
+{% endif -%}
+
+{# UI #}
+{% if browser_ui_bookmarkstoolbar is defined or browser_bookmarks is defined %}
+  DisplayBookmarksToolbar: {{ browser_ui_bookmarkstoolbar | default(True) | bool }}
+{% endif %}
+{% if browser_ui_menubar is defined %}
+{%   if browser_ui_locked | default(False) %}
+  DisplayMenuBar: {{ 'always' if browser_ui_menubar | bool else 'never' }}
+{%   else %}
+  DisplayMenuBar: {{ 'default-on' if browser_ui_menubar | bool else 'default-off' }}
+{%   endif %}
+{% endif %}
+{% if browser_ui_passwordmanager is defined %}
+  PasswordManagerEnabled: {{ browser_ui_passwordmanager | bool }}
+{% endif %}
+{% if browser_ui_searchbar is defined %}
+  SearchBar: {{ 'separate' if browser_ui_searchbar | bool else 'unified' }}
+{% endif %}
+{% if browser_ui_support is defined %}
+  SupportMenu:
+    Title: {{ browser_ui_support.name | mandatory }}
+    URL: {{ browser_ui_support.url | mandatory }}
+    AccessKey: {{ browser_ui_support.key | default('S') }}
+{% endif %}
+{% if browser_ui_whatsnew is defined or
+   browser_ui_recommend_extensions is defined or
+   browser_ui_recommend_features is defined or
+   firefox_url_suggestions is defined %}
+  UserMessaging:
+{%   if browser_ui_whatsnew is defined %}
+    WhatsNew: {{ browser_ui_whatsnew | bool }}
+{%   endif %}
+{%   if browser_ui_recommend_extensions is defined %}
+    ExtensionRecommendations: {{ browser_ui_recommend_extensions | bool }}
+{%   endif %}
+{%   if browser_ui_recommend_features is defined %}
+    FeatureRecommendations: {{ browser_ui_recommend_features | bool }}
+{%   endif %}
+{%   if firefox_url_suggestions is defined %}
+    UrlbarInterventions: {{ firefox_url_suggestions | bool }}
+{%   endif %}
+{% endif %}
+{% if firefox_ui_pocket is defined %}
+  DisablePocket: {{ False if firefox_ui_pocket | bool else True }}
+{% endif -%}

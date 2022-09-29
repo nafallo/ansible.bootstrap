@@ -1,0 +1,16 @@
+---
+- name: Handle GPG SSH agent
+  block:
+    - name: Ensure ~/.config/autostart exist
+      ansible.builtin.file:
+        path: "{{ ansible_user_dir }}/.config/autostart"
+        recursive: true
+        state: directory
+
+    - name: Ensure GPG SSH agent instead of gnome-keyring
+      ansible.builtin.copy:
+        dest: "{{ ansible_user_dir }}/.config/autostart/gnome-keyring-ssh.desktop"
+        content: |
+          {{ lookup('ansible.builtin.file', '/etc/xdg/autostart/gnome-keyring-ssh.desktop') }}
+          Hidden=true
+  when: gpg_ssh_agent | default(false)

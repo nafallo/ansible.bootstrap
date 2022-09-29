@@ -1,0 +1,58 @@
+---
+- name: Ensure GIT repository directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+  loop: "{{ git_repos | default([]) | selectattr('dest', 'defined') | map(attribute='dest') }}"
+
+- name: Ensure GIT repositories
+  vars:
+    default_dest: "{{ ansible_user_dir }}/{{ item.repo.split(':')[-1].replace('.git', '') | basename }}"
+  ansible.builtin.git:
+    repo: "{{ item.repo | mandatory }}"
+    dest: "{{ item.dest | default(default_dest) }}"
+    depth: "{{ item.depth | default(omit) }}"
+    force: "{{ item.force | default(omit) }}"
+    recursive: "{{ item.recursive | default(omit) }}"
+    remote: "{{ item.remote | default(omit) }}"
+    umask: "{{ item.umask | default(omit) }}"
+    version: "{{ item.version | default(omit) }}"
+  loop: "{{ git_repos | default([]) }}"
+  loop_control:
+    label: "{'repo', '{{ item.repo }}', 'dest': '{{ item.dest | default(default_dest) }}'"
+
+- name: Ensure GIT configuration
+  community.general.git_config:
+    name: "{{ item.name | mandatory }}"
+    file: "{{ item.file | default(omit) }}"
+    repo: "{{ item.repo | default(omit) }}"
+    scope: "{{ item.scope | default(omit) }}"
+    value: "{{ item.value | default(omit) }}"
+    state: "{{ item.state | default(omit) }}"
+  loop: "{{ git_config | default([]) }}"
+
+- name: Ensure GIT lines
+  ansible.builtin.lineinfile:
+    path: "{{ item.path | mandatory }}"
+    line: "{{ item.line | mandatory }}"
+    regexp: "{{ item.regexp | default(omit) }}"
+    backrefs: "{{ item.backrefs | default(omit) }}"
+    firstmatch: "{{ item.firstmatch | default(omit) }}"
+    insertafter: "{{ item.insertafter | default(omit) }}"
+    insertbefore: "{{ item.insertbefore | default(omit) }}"
+    state: "{{ item.state | default(omit) }}"
+  loop: "{{ git_files | default([]) | selectattr('line', 'defined') }}"
+  loop_control:
+    label: "{'config': '{{ item.name | default(item.line) }}', 'file': '{{ item.path }}', 'state': '{{ item.state | default('present') }}'}"
+
+- name: Ensure GIT blocks
+  ansible.builtin.blockinfile:
+    path: "{{ item.path | mandatory }}"
+    block: "{{ item.block | mandatory }}"
+    marker: "# {mark} {{ item.name | mandatory }}"
+    insertafter: "{{ item.insertafter | default(omit) }}"
+    insertbefore: "{{ item.insertbefore | default(omit) }}"
+    state: "{{ item.state | default(omit) }}"
+  loop: "{{ git_files | default([]) | selectattr('block', 'defined') }}"
+  loop_control:
+    label: "{'name': '{{ item.name }}', 'file': '{{ item.path }}', 'state': '{{ item.state | default('present') }}'}"

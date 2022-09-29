@@ -1,0 +1,25 @@
+---
+- name: Ensure TMUX title set to $PWD
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    block: |
+      if [ -n "$TMUX" ] && [ -n "$BASH" ]
+      then
+          __set_window_title() {
+              printf "\033k${PWD##*/}\033\\"
+          }
+          PROMPT_COMMAND="__set_window_title"
+      fi
+
+      ssh() {
+          if [ -n "$TMUX" ] && [ -n "$BASH" ]
+          then
+              tmux rename-window "$*"
+              command ssh "$@"
+          else
+              command ssh "$@"
+          fi
+      }
+    marker: '# {mark} TMUX window title'
+    insertbefore: '^# enable programmable completion'
+    state: "{{ 'present' if tmux_rename_window | default(false) else 'absent' }}"

@@ -1,0 +1,120 @@
+---
+vim_plugs:
+  - name: pearofducks/ansible-vim
+    configuration:
+      ansible_unindent_after_newline: 1
+      ansible_attribute_highlight: "'ob'"
+      ansible_name_highlight: "'b'"
+      ansible_extra_keywords_highlight: '1'
+      ansible_template_syntaxes:
+        '*.json.j2': 'json'
+    commands: |-
+      au BufRead,BufNewFile **/devel/**/inventory set filetype=ansible_hosts
+      au BufRead,BufNewFile **/devel/**/inventory/* set filetype=ansible_hosts
+      au BufRead,BufNewFile **/devel/**/*.yml set filetype=yaml.ansible
+      augroup ansible_playbooks
+        autocmd!
+        autocmd BufRead,BufNewFile **/devel/*/*.yml nnoremap <buffer> <Tab> :!ansible-playbook % -DC<CR>
+      augroup END
+      command -nargs=+ -complete=file Play !ansible-playbook <args>
+
+  - name: hashivim/vim-terraform
+    configuration:
+      terraform_fmt_on_save: 1
+
+  - name: vim-syntastic/syntastic
+    configuration:
+      syntastic_check_on_open: 0
+      syntastic_check_on_wq: 0
+      syntastic_python_flake8_args: '"--max-line-length=88"'
+      syntastic_yaml_checkers: ['yamllint']
+    commands: |-
+      function! ToggleErrors()
+        if empty(filter(tabpagebuflist(), 'getbufvar(v:val, "&buftype") is# "quickfix"'))
+          Errors
+        else
+          lclose
+        endif
+      endfunction
+      nnoremap <silent> <C-e> :<C-u>call ToggleErrors()<CR>
+
+  - name: psf/black
+    options:
+      for: python
+    commands: |-
+      "autocmd BufWritePre *.py execute ':Black'"
+
+  - name: junegunn/goyo.vim
+    options:
+      for: markdown
+    commands: |-
+      function! s:goyo_enter()
+        if executable('tmux') && strlen($TMUX)
+          silent !tmux set status off
+          silent !tmux list-panes -F '\#F' | grep -q Z || tmux resize-pane -Z
+        endif
+        set noshowmode
+        set noshowcmd
+        set scrolloff=999
+        if exists('g:solarized_termtrans')
+          let g:transparent = g:solarized_termtrans
+          let g:solarized_termtrans = 0
+          colorscheme solarized
+        endif
+        Limelight
+      endfunction
+
+      function! s:goyo_leave()
+        if executable('tmux') && strlen($TMUX)
+          silent !tmux set status on
+          silent !tmux list-panes -F '\#F' | grep -q Z && tmux resize-pane -Z
+        endif
+        set showmode
+        set showcmd
+        set scrolloff=5
+        if exists('g:solarized_termtrans') && exists('g:transparent')
+          let g:solarized_termtrans = g:transparent
+          colorscheme solarized
+        endif
+        Limelight!
+      endfunction
+
+      autocmd! User GoyoEnter nested call <SID>goyo_enter()
+      autocmd! User GoyoLeave nested call <SID>goyo_leave()
+
+  - name: junegunn/limelight.vim
+    configuration:
+      limelight_conceal_ctermfg: "'Green'"
+      limelight_default_coefficient: 0.7
+
+  - name: vim-airline/vim-airline-themes
+
+  - name: vim-airline/vim-airline
+    configuration:
+      airline#extensions#tabline#enabled: 1
+      airline#extensions#tabline#formatter: "'unique_tail_improved'"
+
+  - name: airblade/vim-gitgutter
+
+vim_config: |-
+  set number
+  set showbreak=↪\ 
+  set list listchars=tab:→\ ,nbsp:␣,trail:•
+  set expandtab
+  set tabstop=2 softtabstop=2 shiftwidth=2
+  set showcmd
+  set showmatch
+  set ignorecase
+  set smartcase
+  set incsearch
+  if has("autocmd")
+    au BufReadPost * if line("'\"") > 1 && line("'\"") <= line("$") | exe "normal! g'\"" | endif
+    filetype plugin indent on
+  endif
+  augroup EnableSyntaxHighlighting
+    autocmd! BufWinEnter,WinEnter * nested if exists('syntax_on') && ! exists('b:current_syntax') && ! empty(&l:filetype) && index(split(&eventignore, ','), 'Syntax') == -1 | syntax enable | endif
+    autocmd! BufRead * if exists('syntax_on') && exists('b:current_syntax') && ! empty(&l:filetype) && index(split(&eventignore, ','), 'Syntax') != -1 | unlet! b:current_syntax | endif
+  augroup END
+  if exists('$TMUX')
+    autocmd BufEnter * call system("tmux rename-window '" . expand("%:t") . "'")
+  endif

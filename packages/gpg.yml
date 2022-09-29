@@ -1,0 +1,46 @@
+---
+- name: Handle GPG SSH agent
+  block:
+    - name: Ensure ~/.gnupg directory
+      ansible.builtin.file:
+        path: "{{ ansible_user_dir }}/.gnupg"
+        owner: "{{ ansible_user_id | default(omit) }}"
+        group: "{{ anisble_user_id | default(omit) }}"
+        mode: '0700'
+        state: directory
+
+    - name: Ensure GPG trust model
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_user_dir }}/.gnupg/gpg.conf"
+        line: 'trust-model tofu+pgp'
+        owner: "{{ ansible_user_id | default(omit) }}"
+        group: "{{ anisble_user_id | default(omit) }}"
+        mode: '0600'
+        create: true
+        state: "{{ 'present' if gpg_ssh_agent else 'absent' }}"
+      notify: Restart gpg-agent
+
+    - name: Ensure GPG SSH agent enabled
+      ansible.builtin.lineinfile:
+        path: "{{ ansible_user_dir }}/.gnupg/gpg-agent.conf"
+        line: 'enable-ssh-support'
+        owner: "{{ ansible_user_id | default(omit) }}"
+        group: "{{ ansible_user_id | default(omit) }}"
+        mode: '0600'
+        create: true
+        state: "{{ 'present' if gpg_ssh_agent else 'absent' }}"
+      notify: Restart gpg-agent
+  when: gpg_ssh_agent is defined
+
+- name: Ensure $GPG_TTY set in ~/.bashrc
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    block: |
+      if [ "$GPG_TTY" != "$(tty)" ]
+      then
+          GPG_TTY=$(tty)
+          export GPG_TTY
+          gpg-connect-agent updatestartuptty /bye 2&>/dev/null
+      fi
+    marker: "# {mark} refresh GPG_TTY"
+    state: "{{ 'present' if gpg_refresh_tty | default(false) else 'absent' }}"

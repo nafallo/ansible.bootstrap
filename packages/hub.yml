@@ -1,0 +1,8 @@
+---
+- name: Ensure git alias to hub
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_user_dir }}/.bash_aliases"
+    line: 'alias git=''hub'''
+    regexp: '^alias git='
+    create: true
+    state: "{{ 'present' if hub_git_alias | default(false) else 'absent' }}"

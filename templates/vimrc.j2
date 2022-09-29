@@ -1,0 +1,36 @@
+{% set theme = vim_bg | default(vim_theme | default(terminal_theme | default(false))) | string %}
+{% set transparency = 1 if terminal_transparency | default(0) != 0 else 0 %}
+{% if theme.startswith('solarized') %}
+{%   set vim_plugs = vim_plugs | default([]) + [{'name': 'altercation/vim-colors-solarized', 'configuration': {'solarized_termtrans': transparency }, 'commands': 'syntax enable\ntry\n  colorscheme solarized\ncatch\n  :silent! colorscheme\nendtry'}] %}
+{% endif %}
+if has('gui_running')
+    set background={{ vim_guibg | default('light') }}
+else
+    set background={{ 'light' if theme.endswith('light') else 'dark' }}
+endif
+{% if vim_config is defined %}
+{{ vim_config }}
+{% endif %}
+
+{% if vim_plugs is defined %}
+call plug#begin('~/.vim/plugged')
+{%   for plug in vim_plugs %}
+Plug '{{ plug.name | mandatory }}'{% if plug.options is defined and plug.options is iterable %}, {{ plug.options }}{% endif %}
+
+{%   endfor %}
+call plug#end()
+
+{%   for plug in vim_plugs %}
+{%     if plug.configuration is defined or plug.commands is defined %}
+"BEGIN {{ plug.name }}"
+{%       for conf in plug.configuration | default({}) | dict2items %}
+let g:{{ conf.key }} = {{ conf.value }}
+{%       endfor %}
+{%       if plug.commands is defined %}
+{{ plug.commands | string }}
+{%       endif %}
+"END {{ plug.name }}"
+
+{%     endif %}
+{%   endfor %}
+{% endif %}

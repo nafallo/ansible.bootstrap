@@ -1,0 +1,36 @@
+[global_config]
+{% if terminal_borderless | default(false) %}
+  borderless = True
+{% endif %}
+[keybindings]
+{% if not terminal_broadcast_keys | default(true) %}
+  broadcast_off = None
+  broadcast_group = None
+  broadcast_all = None
+{% endif %}
+[profiles]
+  [[default]]
+{% if background_color != '' %}
+    background_color = "{{ background_color }}"
+{% endif %}
+{% if terminal_transparency | default(0) | int != 0 %}
+    background_darkness = {{ (100 - terminal_transparency) / 100 | float(2) }}
+    background_type = transparent
+{% endif %}
+{% if foreground_color != '' %}
+    cursor_color = "{{ foreground_color }}"
+    foreground_color = "{{ foreground_color }}"
+{% endif %}
+{% if not terminal_titlebar | default(true) %}
+    show_titlebar = False
+{% endif %}
+{% if not terminal_scrollbar | default(true) %}
+    scrollbar_position = hidden
+{% endif %}
+{% if palette != '' %}
+    palette = "{{ palette }}"
+{% endif %}
+{% if terminal_command | default(false) is not sameas false %}
+    use_custom_command = True
+    custom_command = {{ terminal_command }}
+{% endif %}

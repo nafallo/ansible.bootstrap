@@ -40,6 +40,7 @@
     firstmatch: "{{ item.firstmatch | default(omit) }}"
     insertafter: "{{ item.insertafter | default(omit) }}"
     insertbefore: "{{ item.insertbefore | default(omit) }}"
+    create: true
     state: "{{ item.state | default(omit) }}"
   loop: "{{ git_files | default([]) | selectattr('line', 'defined') }}"
   loop_control:
@@ -52,6 +53,7 @@
     marker: "# {mark} {{ item.name | mandatory }}"
     insertafter: "{{ item.insertafter | default(omit) }}"
     insertbefore: "{{ item.insertbefore | default(omit) }}"
+    create: true
     state: "{{ item.state | default(omit) }}"
   loop: "{{ git_files | default([]) | selectattr('block', 'defined') }}"
   loop_control:

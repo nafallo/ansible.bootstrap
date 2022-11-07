@@ -1,0 +1,7 @@
+---
+- name: Ensure motd-news state
+  ansible.builtin.lineinfile:
+    path: /etc/default/motd-news
+    regexp: '^ENABLED='
+    line: "ENABLED={{ motd_news | bool | int }}"
+  when: motd_news is defined

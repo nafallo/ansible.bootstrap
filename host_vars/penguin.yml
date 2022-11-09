@@ -45,3 +45,5 @@ ssh_config:
     User: ubuntu
     StrictHostKeyChecking: 'no'
     UserKnownHostsFile: '/dev/null'
+
+terminal_transparency: 0

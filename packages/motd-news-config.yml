@@ -1,5 +1,6 @@
 ---
 - name: Ensure motd-news state
+  become: true
   ansible.builtin.lineinfile:
     path: /etc/default/motd-news
     regexp: '^ENABLED='

@@ -8,9 +8,14 @@
 - name: Ensure TMUX renaming in Byobu
   ansible.builtin.lineinfile:
     path: "{{ ansible_user_dir }}/.config/byobu/profile.tmux"
-    line: "{{ item }}"
+    line: "{{ item.line | mandatory }}"
+    insertafter: "{{ item.insertafter | default(omit) }}"
+    insertbefore: "{{ item.insertbefore | default(omit) }}"
     create: true
-    state: "{{ 'present' if tmux_rename_window | default(false) else 'absent' }}"
+    state: "{{ item.state | default(omit) }}"
   loop:
-    - 'source $BYOBU_PREFIX/share/byobu/profiles/tmux'
-    - 'set-option -g allow-rename on'
+    - line: 'source $BYOBU_PREFIX/share/byobu/profiles/tmux'
+      insertbefore: BOF
+      state: present
+    - line: 'set-option -g allow-rename on'
+      state: "{{ 'present' if tmux_rename_window | default(false) else 'absent' }}"

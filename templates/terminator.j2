@@ -32,5 +32,5 @@
 {% endif %}
 {% if terminal_command | default(false) is not sameas false %}
     use_custom_command = True
-    custom_command = {{ terminal_command }}
+    custom_command = {{ terminal_command | default(None) }}
 {% endif %}

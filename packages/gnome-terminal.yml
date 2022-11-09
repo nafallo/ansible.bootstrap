@@ -43,7 +43,7 @@
       value: 'true'
       state: "{{ 'absent' if terminal_transparency | default(0) == 0 else 'present' }}"
     - key: custom-command
-      value: "'{{ terminal_command }}'"
+      value: "'{{ terminal_command | default(None) }}'"
       state: "{{ 'absent' if not terminal_command | default(false) else 'present' }}"
     - key: use-custom-command
       value: 'true'

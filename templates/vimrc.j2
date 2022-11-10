@@ -7,18 +7,20 @@ Plug '{{ plug.name | mandatory }}'{% if plug.options is defined and plug.options
 {%   endfor %}
 call plug#end()
 
+{% endif %}
 if has('gui_running')
     set background={{ vim_guibg | default('light') }}
 else
     set background={{ 'light' if theme.endswith('light') else 'dark' }}
 endif
-
 {% if vim_config is defined %}
-{{ vim_config }}
-{% endif %}
 
-{%   for plug in vim_plugs %}
+{{ vim_config | default(None) }}
+{% endif %}
+{% if vim_plugs is defined %}
+{%   for plug in vim_plugs | default([]) %}
 {%     if plug.configuration is defined or plug.commands is defined %}
+
 "BEGIN {{ plug.name }}"
 {%       for conf in plug.configuration | default({}) | dict2items %}
 let g:{{ conf.key }} = {{ conf.value }}
@@ -27,7 +29,6 @@ let g:{{ conf.key }} = {{ conf.value }}
 {{ plug.commands | string }}
 {%       endif %}
 "END {{ plug.name }}"
-
 {%     endif %}
 {%   endfor %}
 {% endif %}

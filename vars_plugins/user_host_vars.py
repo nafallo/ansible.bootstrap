@@ -66,7 +66,7 @@ FOUND = {}
 
 class VarsModule(BaseVarsPlugin):
 
-    REQUIRES_WHITELIST = False
+    REQUIRES_ENABLED = False
 
     # Get the current user and hostname just once
     user = os.getlogin(), "user_vars"

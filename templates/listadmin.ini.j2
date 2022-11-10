@@ -1,9 +1,12 @@
 default {{ listadmin_action | default('skip') }}
-log ~/.listadmin.log
+log {{ listadmin_log | default('none') }}
 
-adminurl https://{domain}/mailman/admindb/{list}
+adminurl {{ listadmin_adminurl | default('https://{domain}/mailman/admindb/{list}') }}
+{% if listadmin_user is defined %}
+username {{ listadmin_user | default(None) }}
+{% endif %}
 {% if listadmin_passwd is defined %}
-password {{ listadmin_passwd }}
+password {{ listadmin_passwd | default(None) }}
 {% endif %}
 {% for list in listadmin_lists | default([]) %}
 {{ list }}

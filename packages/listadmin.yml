@@ -4,6 +4,4 @@
     src: 'listadmin.ini.j2'
     dest: "{{ ansible_user_dir }}/.listadmin.ini"
     mode: '0600'
-  when:
-    - listadmin_lists is defined
-    - listadmin_lists is mapping
+  when: listadmin_lists | default(None) | type_debug == 'list'

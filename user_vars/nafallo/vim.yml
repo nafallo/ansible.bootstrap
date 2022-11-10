@@ -4,7 +4,6 @@ apt:
     - vim-addon-manager
     - vim-airline
     - vim-airline-themes
-    - vim-fugitive
     - vim-gitgutter
     - vim-solarized
     - vim-syntastic

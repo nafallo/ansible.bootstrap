@@ -1,7 +1,7 @@
 ---
 ansible_cfg:
   - option: inventory
-    value: !unsafe '{{CWD}}/inventory'
+    value: !unsafe '{{CWD}}/inventory,~/ansible/inventory'
   - option: collections_path
     value: ~/.ansible/collections:~/ansible/collections:/usr/share/ansible/collections
   - option: roles_path

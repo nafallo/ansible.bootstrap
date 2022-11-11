@@ -25,6 +25,10 @@ bat_themes:
   - name: 'Solarized (light)'
     src: 'bat/Solarized (light).tmTheme'
 
+powerline:
+  - name: bash
+  - name: tmux
+
 terminal_borderless: true
 terminal_broadcast_keys: false
 terminal_scrollbar: false
@@ -32,4 +36,6 @@ terminal_theme: 'solarized-dark'
 terminal_titlebar: false
 terminal_transparency: 15
 
+tmux_autostart: true
 tmux_rename_window: true
+tmux_rename_window_ssh: true

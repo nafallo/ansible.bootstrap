@@ -1,4 +1,17 @@
 ---
+- name: Ensure TMUX autostart
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    line: '[ -z "$TMUX" ] && { tmux attach || exec tmux new-session && exit;}'
+    state: "{{ 'present' if tmux_autostart | default(false) else 'absent' }}"
+
+- name: Ensure TMUX renaming configured
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_user_dir }}/.tmux.conf"
+    line: set-option -g allow-rename on
+    create: true
+    state: "{{ 'present' if tmux_rename_window | default(false) else 'absent' }}"
+
 - name: Ensure TMUX title set to $PWD
   ansible.builtin.blockinfile:
     path: "{{ ansible_user_dir }}/.bashrc"
@@ -10,7 +23,14 @@
           }
           PROMPT_COMMAND="__set_window_title"
       fi
+    marker: '# {mark} TMUX window title'
+    insertbefore: '^# enable programmable completion'
+    state: "{{ 'present' if tmux_rename_window | default(false) else 'absent' }}"
 
+- name: Ensure TMUX title set to SSH host
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    block: |
       ssh() {
           if [ -n "$TMUX" ] && [ -n "$BASH" ]
           then
@@ -20,6 +40,6 @@
               command ssh "$@"
           fi
       }
-    marker: '# {mark} TMUX window title'
+    marker: '# {mark} TMUX window title (ssh host)'
     insertbefore: '^# enable programmable completion'
-    state: "{{ 'present' if tmux_rename_window | default(false) else 'absent' }}"
+    state: "{{ 'present' if tmux_rename_window_ssh | default(false) else 'absent' }}"

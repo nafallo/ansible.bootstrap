@@ -1,0 +1,24 @@
+---
+- name: Ensure powerline bash binding
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    block: |-
+      if [[ $- = *i* ]]
+      then
+        powerline-daemon -q
+        POWERLINE_BASH_CONTINUATION=1
+        POWERLINE_BASH_SELECT=1
+        . /usr/share/powerline/bindings/bash/powerline.sh
+      fi
+    marker: "# {mark} powerline"
+    state: "{{ 'present' if 'bash' in powerline | map(attribute='name') else 'absent' }}"
+
+- name: Ensure powerline tmux binding
+  ansible.builtin.blockinfile:
+    path: "{{ ansible_user_dir }}/.tmux.conf"
+    block: |-
+      run-shell "powerline-daemon -q"
+      source "/usr/share/powerline/bindings/tmux/powerline.conf"
+    create: true
+    marker: "# {mark} powerline"
+    state: "{{ 'present' if 'tmux' in powerline | map(attribute='name') else 'absent' }}"

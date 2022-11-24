@@ -13,7 +13,7 @@
     create: true
   when:
     - ssh_config is defined
-    - ssh_config is mapping
+    - ssh_config | default(None) | type_debug == 'list'
 
 - name: Ensure SSH known hosts
   ansible.builtin.known_hosts:
@@ -23,5 +23,15 @@
     hash_host: "{{ item.hash_host | default(omit) }}"
     state: "{{ item.state | default(omit) }}"
   loop: "{{ ssh_known_hosts | default([]) }}"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Ensure SSH keys
+  ansible.builtin.copy:
+    content: "{{ item.data }}"
+    dest: "{{ ansible_user_dir }}/.ssh/{{ item.name }}"
+    mode: "{{ '0644' if item.name.endswith('.pub') else '0600' }}"
+    validate: ssh-keygen -e -f %s
+  loop: "{{ ssh_keys | default([]) }}"
   loop_control:
     label: "{{ item.name }}"
